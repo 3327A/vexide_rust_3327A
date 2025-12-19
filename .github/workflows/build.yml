@@ -1,0 +1,40 @@
+name: Build using vexide
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      # install build tools on Linux
+      - name: Install build tools on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+          sudo apt install rustc cargo
+          cargo --version
+          cargo install cargo-v5
+          cargo test --all
+          cargo v5 build -p vexide
+          cargo v5 build
+          
+      # build on Linux
+      - name: Build vexide_rust_3327A on Linux
+        run: make -f Makefile.mk all
+
+      # Upload vexide_rust_3327A artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vexide_rust_3327A-binary-${{ matrix.os }}
+          path: |
+            vexide_rust_3327A*
