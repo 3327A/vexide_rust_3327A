@@ -2,6 +2,7 @@ use vexide::prelude::*;
 
 struct Robot {
     controller: Controller,
+    // drive train
     left_motors: [Motor; 3],
     right_motors: [Motor; 3],
 }
