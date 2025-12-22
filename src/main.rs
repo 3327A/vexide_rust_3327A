@@ -31,6 +31,11 @@ impl Robot {
 }
 
 impl Compete for Robot {
+    async fn autonomous(&mut self) {
+        println!("We haven't got to developing this yet.");
+    }
+
+    
     async fn driver(&mut self) { 
         // TODO: print that I am tiking it in all caps (good luck);
         loop {
@@ -56,6 +61,9 @@ impl Compete for Robot {
             
             if controller_state.button_x.is_now_pressed() {
                 self.toggle_piston_a();
+            }
+            if controller_state.button_up.is_now_pressed() {
+                self.toggle_piston_b();
             }
 
             sleep(Controller::UPDATE_INTERVAL).await;
