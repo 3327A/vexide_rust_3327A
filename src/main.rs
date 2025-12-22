@@ -1,11 +1,54 @@
-mod bot;
-
 use vexide::prelude::*;
-use crate::bot::Bot;
+
+struct Robot {
+    controller: Controller,
+    left_motors: [Motor; 3],
+    right_motors: [Motor; 3],
+}
+
+impl Compete for Robot {
+    async fn driver(&mut self) {
+        loop {
+            let controller_state = self
+                                    .controller
+                                    .state()
+                                    .unwrap_or_default();
+
+            // - R sticks vertical motion dictates the robot's forward voltage.
+            // - L sticks sideways motion dictates the robot's turning voltage.
+            let forward = controller_state.right_stick.x();
+            let turn = controller_state.left_stick.y();
+
+            // move the left motors.
+            for motor in self.left_motors.iter_mut() {
+                _ = motor.set_voltage((forward + turn) * Motor::V5_MAX_VOLTAGE);
+            }
+
+            // move the right motors.
+            for motor in self.right_motors.iter_mut() {
+                _ = motor.set_voltage((forward - turn) * Motor::V5_MAX_VOLTAGE);
+            }
+
+            sleep(Controller::UPDATE_INTERVAL).await;
+        }
+    }
+}
 
 #[vexide::main]
-async fn main(_peripherals: Peripherals) {
-    let bot = Bot {};
-    bot.compete().await; // start the auton then go to driver controll.
-    sleep(vexide::adi::ADI_UPDATE_INTERVAL).await;
+async fn main(peripherals: Peripherals) {
+    Robot {
+        controller: peripherals.primary_controller,
+        left_motors: [
+            Motor::new(peripherals.port_1, Gearset::Blue, Direction::Reverse),
+            Motor::new(peripherals.port_2, Gearset::Blue, Direction::Reverse),
+            Motor::new(peripherals.port_3, Gearset::Blue, Direction::Forward),
+        ],
+        right_motors: [
+            Motor::new(peripherals.port_4, Gearset::Blue, Direction::Forward),
+            Motor::new(peripherals.port_5, Gearset::Blue, Direction::Forward),
+            Motor::new(peripherals.port_6, Gearset::Blue, Direction::Reverse),
+        ],
+    }
+    .compete()
+    .await;
 }
